@@ -1,3 +1,5 @@
+/** @format */
+
 export const interceptor = (instance) => {
   instance.interceptors.request.use(
     function (config) {
@@ -11,7 +13,7 @@ export const interceptor = (instance) => {
 
   instance.interceptors.response.use(
     function (response) {
-      return response;
+      return response.data.data;
     },
     function (error) {
       return Promise.reject(error);

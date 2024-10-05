@@ -1,3 +1,5 @@
+/** @format */
+
 import axios from "axios";
 
 import { SUBGRAPH_URL } from "./common";
@@ -18,7 +20,8 @@ const request = async ({ method, url, data }) => {
   console.log("⚡ ~ promise:", promise);
   try {
     const response = await promise;
-    const payload = response.data;
+    console.log(response);
+    const payload = response;
 
     return payload;
   } catch (err) {

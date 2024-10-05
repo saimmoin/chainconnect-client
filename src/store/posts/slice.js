@@ -33,6 +33,7 @@ export const postsSlice = createSlice({
       state.posts = action.payload;
     });
     builder.addCase(getAllPostsQuery.rejected, (state, action) => {
+      console.log("ACTION: ", action);
       state.postsError = action.error.message;
       state.postsSuccess = false;
       state.status = "error";

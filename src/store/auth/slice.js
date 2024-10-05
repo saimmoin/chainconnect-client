@@ -3,7 +3,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  profile: null,
+  profile: {
+    address: null,
+    followers: [],
+    following: [],
+  },
   status: "idle", // idle, loading, success, error
   profileError: null,
   profileSuccess: false,

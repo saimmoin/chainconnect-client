@@ -32,7 +32,7 @@ export const ConnectWallet = () => {
     if (isSuccess) {
       dispatch(setProfile(userInfo));
     } else if (isError) {
-      console.log("⚡ ~ error:", error)
+      console.log("⚡ ~ error:", error);
       dispatch(setProfileError(error));
     }
   });
@@ -76,7 +76,8 @@ export const ConnectWallet = () => {
                 className="h-10 px-6 font-semibold rounded-md bg-black text-white font-mono"
                 key={connector.uid}
                 onClick={() => connect({ connector })}
-                type="button">
+                type="button"
+              >
                 {connector.name}
               </button>
             ) : null
