@@ -35,7 +35,7 @@ export const ConnectWallet = () => {
       console.log("⚡ ~ error:", error);
       dispatch(setProfileError(error));
     }
-  });
+  }, [isSuccess, isError, userInfo, error]);
   return (
     <div>
       {account.status === "connected" ? (

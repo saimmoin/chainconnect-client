@@ -1,10 +1,12 @@
 /** @format */
 
-import React, { useState } from "react";
-import { selectProfile } from "../store/auth/slice";
+import React, { useEffect, useState } from "react";
+// import { selectProfile } from "../store/auth/slice";
 
-import { useAppSelector } from "../store/store";
+// import { useAppSelector } from "../store/store";
 import { useAccount } from "wagmi";
+import { publicClient } from "../utils/client";
+import { wagmiAbi } from "../utils/abi";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -12,8 +14,21 @@ const Register = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [bio, setBio] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
+  const [isValidUsername, setValidUsername] = useState({
+    isReserverd: false,
+    isValid: true,
+  });
 
   const account = useAccount();
+
+  const validateAndCheckAvailable = (functionName = "") => {
+    return publicClient.readContract({
+      address: "0x18614B51ca6097B1b4C5e2075C111f18Ce3Cb868",
+      abi: wagmiAbi,
+      functionName,
+      args: [username],
+    });
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -22,7 +37,6 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission, validations, etc.
     console.log({
       username,
       displayName,
@@ -31,6 +45,34 @@ const Register = () => {
       walletAddress,
     });
   };
+
+  const handleUsernameCheck = async (username) => {
+    try {
+      // e.preventDefault();
+      // Handle form submission, validations, etc.
+      // console.log({
+      //   username,
+      //   displayName,
+      //   profileImage,
+      //   bio,
+      //   walletAddress,
+      // });
+      const [isNameReserved, validateName] = await Promise.all([
+        validateAndCheckAvailable("isNameReserved"),
+        validateAndCheckAvailable("validateName"),
+      ]);
+      setValidUsername({
+        isReserverd: isNameReserved,
+        isValid: validateName,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    console.log("isValidUsername", isValidUsername);
+  }, [isValidUsername]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 font-mono pt-14 min-h-screen">
@@ -47,9 +89,16 @@ const Register = () => {
               placeholder="Enter your username"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setTimeout(() => {
+                  handleUsernameCheck(e.target.value);
+                }, 1500);
+              }}
               required
             />
+            {isValidUsername.isReserverd && <p className="text-red-500 text-xs mt-1">Username is reserved</p>}
+            {!isValidUsername.isValid && <p className="text-red-500 text-xs mt-1">Username is not valid</p>}
           </div>
 
           <div className="mb-4">
