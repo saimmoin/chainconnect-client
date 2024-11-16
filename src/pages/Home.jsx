@@ -5,14 +5,13 @@ import Spinner from "../components/Loader";
 import { isLoading, selectProfile } from "../store/auth/slice";
 import { isLoading as isPostsPending } from "../store/posts/slice";
 
-import { useAppDispatch, useAppSelector } from "../store/store";
 import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../store/store";
 
 const Home = () => {
   const isAuthLoading = useAppSelector(isLoading);
   const isPostsLoading = useAppSelector(isPostsPending);
   const profile = useAppSelector(selectProfile);
-  console.log("⚡ ~ profile:", profile.following);
   const dispatch = useAppDispatch();
 
   useEffect(() => {

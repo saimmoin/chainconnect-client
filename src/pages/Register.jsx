@@ -1,12 +1,14 @@
 /** @format */
 
-import React, { useEffect, useState } from "react";
-// import { selectProfile } from "../store/auth/slice";
+import { useStorageUpload } from "@thirdweb-dev/react";
+import { useEffect, useState } from "react";
+
 
 // import { useAppSelector } from "../store/store";
 import { useAccount } from "wagmi";
 import { publicClient, client } from "../utils/client";
 import { wagmiAbi } from "../utils/abi";
+import { publicClient } from "../utils/client";
 
 const Register = ({ heading, buttonText, isUpdating = false }) => {
   const account = useAccount();
@@ -18,6 +20,9 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
     isReserverd: false,
     isValid: true,
   });
+  const { mutateAsync: upload } = useStorageUpload({});
+
+
 
   useEffect(() => {
     getUserInfo()
@@ -52,23 +57,57 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
     });
   };
 
-  async function submitForm() {
+  async function submitForm(imageURL) {
     const { request } = await publicClient.simulateContract({
       account: account.address,
       address: "0x18614B51ca6097B1b4C5e2075C111f18Ce3Cb868",
       abi: wagmiAbi,
       functionName: isUpdating ? "updateUserInfo" : "createAccount",
-      args: [[username, displayName, bio, profileImage]],
+      args: [[username, displayName, bio, imageURL]],
     });
     await client.writeContract(request);
   }
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    setProfileImage(file);
+  const simpleURI = hash => 'ipfs://' + hash[0].split('/ipfs/')[1] // ipfs://<hash>
+
+  const uploadViathirdweb = async payload => {
+    const result = await upload({
+      data: payload,
+      options: {
+        uploadWithGatewayUrl: true,
+        uploadWithoutDirectory: true,
+      },
+    })
+    return result
+  }
+
+  const handleImageUpload = async (e) => {
+
+    // And upload the data with the upload function
+    const imageHash = await uploadViathirdweb(e.target.files);
+    console.log("⚡ ~ imageHash:", imageHash);
+
+    //URI Metadata object
+    // const metadataHash = await uploadViathirdweb([
+    //   {
+    //     // ...nftState,
+    //     image: 'https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1], // public IPFS gateway,
+    //   },
+    // ])
+    console.log('https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1]);
+
+    // console.log("⚡ ~ metadataHash:", metadataHash);
+    return 'https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1]
+
+    
+
+
+    // setProfileImage(response);
+    // console.log("⚡ ~ file:", file)
+    // setProfileImage(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log({
       username,
@@ -77,7 +116,12 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
       bio,
       account,
     });
-    submitForm();
+    const imageURL = await handleImageUpload(e);
+    submitForm(imageURL);
+
+
+    //make smart contract create account transaction
+
   };
 
   const handleUsernameCheck = async (username) => {

@@ -4,10 +4,8 @@ import axios from "axios";
 import { interceptor } from "./interceptor";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: import.meta.env.VITE_BACKEND_URL,
 });
-// console.log("⚡ ~ import.meta.env.:", import.meta.env);
-// console.log("⚡ ~ import.meta.env.BACKEND_URL:", import.meta.env.BACKEND_URL);
 
 interceptor(instance);
 

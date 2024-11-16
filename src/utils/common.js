@@ -1,5 +1,10 @@
 /** @format */
 
+export const THIRD_WEB_CREDENTIALS = {
+  clientId: import.meta.env.VITE_CLIENT_ID,
+  secretKey: import.meta.env.VITE_SECRET_KEY,
+};
+
 export function truncateAddress(address, startChars = 6, endChars = 4) {
   if (typeof address !== "string" || address.length < startChars + endChars) {
     throw new Error("Invalid address or parameters");
@@ -9,6 +14,8 @@ export function truncateAddress(address, startChars = 6, endChars = 4) {
   const end = address.substring(address.length - endChars);
   return `${start}...${end}`;
 }
+
+console.log("⚡ ~ import.meta.env.VITE_TATUM_API_KEY:", import.meta.env);
 
 // export const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/62444/chainconnect/version/latest";
 export const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/86804/chainconnect/version/latest";
