@@ -20,7 +20,8 @@ function App() {
             <Route path="/search" element={<Search />} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/post/details" element={<PostDetails />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register heading={"Create Your Account"} buttonText={"Register"} />} />
+            <Route path="/update" element={<Register heading={"Update Your Account"} buttonText={"Update"} isUpdating={true} />} />
           </Routes>
         </Router>
       </div>

@@ -5,21 +5,34 @@ import React, { useEffect, useState } from "react";
 
 // import { useAppSelector } from "../store/store";
 import { useAccount } from "wagmi";
-import { publicClient } from "../utils/client";
+import { publicClient, client } from "../utils/client";
 import { wagmiAbi } from "../utils/abi";
 
-const Register = () => {
+const Register = ({ heading, buttonText, isUpdating = false }) => {
+  const account = useAccount();
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [profileImage, setProfileImage] = useState(null);
   const [bio, setBio] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
   const [isValidUsername, setValidUsername] = useState({
     isReserverd: false,
     isValid: true,
   });
 
-  const account = useAccount();
+  useEffect(() => {
+    getUserInfo()
+      .then((data) => {
+        //[username, displayname, bio, image]
+        console.log("data found user", data);
+        setUsername(data[0]);
+        setDisplayName(data[1]);
+        setBio(data[2]);
+        setProfileImage(data[3]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
 
   const validateAndCheckAvailable = (functionName = "") => {
     return publicClient.readContract({
@@ -29,6 +42,26 @@ const Register = () => {
       args: [username],
     });
   };
+
+  const getUserInfo = () => {
+    return publicClient.readContract({
+      address: "0x18614B51ca6097B1b4C5e2075C111f18Ce3Cb868",
+      abi: wagmiAbi,
+      functionName: "userInfo",
+      args: [account.address],
+    });
+  };
+
+  async function submitForm() {
+    const { request } = await publicClient.simulateContract({
+      account: account.address,
+      address: "0x18614B51ca6097B1b4C5e2075C111f18Ce3Cb868",
+      abi: wagmiAbi,
+      functionName: isUpdating ? "updateUserInfo" : "createAccount",
+      args: [[username, displayName, bio, profileImage]],
+    });
+    await client.writeContract(request);
+  }
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -42,21 +75,22 @@ const Register = () => {
       displayName,
       profileImage,
       bio,
-      walletAddress,
+      account,
     });
+    submitForm();
   };
 
   const handleUsernameCheck = async (username) => {
     try {
       // e.preventDefault();
       // Handle form submission, validations, etc.
-      // console.log({
-      //   username,
-      //   displayName,
-      //   profileImage,
-      //   bio,
-      //   walletAddress,
-      // });
+      console.log({
+        username,
+        displayName,
+        profileImage,
+        bio,
+        address: account.address,
+      });
       const [isNameReserved, validateName] = await Promise.all([
         validateAndCheckAvailable("isNameReserved"),
         validateAndCheckAvailable("validateName"),
@@ -77,7 +111,7 @@ const Register = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 font-mono pt-14 min-h-screen">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Create Your Account</h2>
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">{heading}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
@@ -162,7 +196,7 @@ const Register = () => {
             type="submit"
             className="w-full bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600 transition duration-200 font-bold"
           >
-            Register
+            {buttonText}
           </button>
         </form>
       </div>
