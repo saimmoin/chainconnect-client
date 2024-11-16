@@ -2,6 +2,8 @@
 
 // src/Posts.js
 import React from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useAccount } from "wagmi";
 
 // Sample data for the posts
 const postsData = [
@@ -50,12 +52,22 @@ const postsData = [
 ];
 
 const Posts = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
+  const account = useAccount();
+
+  const handlePostClick = (post) => {
+    // Navigate to a specific route with the post data
+    navigate(`/${account.address}/${post.id}`, { state: { post } });
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       {postsData.map((post) => (
-        <div key={post.id} className="bg-white shadow-md rounded-lg mb-4 max-w-xs mx-auto">
-          {" "}
-          {/* Added mx-auto for centering */}
+        <div
+          key={post.id}
+          className="bg-white shadow-md rounded-lg mb-4 max-w-xs mx-auto cursor-pointer"
+          onClick={() => handlePostClick(post)} // Add click handler
+        >
           <div className="flex items-center p-3 border-b">
             <img src={post.avatar} alt="Avatar" className="rounded-full w-10 h-10 mr-3" />
           </div>
