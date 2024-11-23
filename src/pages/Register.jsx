@@ -3,12 +3,11 @@
 import { useStorageUpload } from "@thirdweb-dev/react";
 import { useEffect, useState } from "react";
 
-
 // import { useAppSelector } from "../store/store";
 import { useAccount } from "wagmi";
 import { publicClient, client } from "../utils/client";
 import { wagmiAbi } from "../utils/abi";
-import { publicClient } from "../utils/client";
+import axios from "./../utils/axios";
 
 const Register = ({ heading, buttonText, isUpdating = false }) => {
   const account = useAccount();
@@ -21,8 +20,6 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
     isValid: true,
   });
   const { mutateAsync: upload } = useStorageUpload({});
-
-
 
   useEffect(() => {
     getUserInfo()
@@ -57,7 +54,7 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
     });
   };
 
-  async function submitForm(imageURL) {
+  async function submitForm(imageURL = "") {
     const { request } = await publicClient.simulateContract({
       account: account.address,
       address: "0x18614B51ca6097B1b4C5e2075C111f18Ce3Cb868",
@@ -66,25 +63,25 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
       args: [[username, displayName, bio, imageURL]],
     });
     await client.writeContract(request);
+    console.log("Submitting form...");
   }
 
-  const simpleURI = hash => 'ipfs://' + hash[0].split('/ipfs/')[1] // ipfs://<hash>
+  const simpleURI = (hash) => "https://ipfs.io/ipfs/" + hash[0].split("/ipfs/")[1]; // ipfs://<hash>
 
-  const uploadViathirdweb = async payload => {
+  const uploadViathirdweb = async (payload) => {
     const result = await upload({
       data: payload,
       options: {
         uploadWithGatewayUrl: true,
         uploadWithoutDirectory: true,
       },
-    })
-    return result
-  }
+    });
+    return result;
+  };
 
   const handleImageUpload = async (e) => {
-
     // And upload the data with the upload function
-    const imageHash = await uploadViathirdweb(e.target.files);
+    const imageHash = await uploadViathirdweb([e.target.files[0]]);
     console.log("⚡ ~ imageHash:", imageHash);
 
     //URI Metadata object
@@ -94,13 +91,10 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
     //     image: 'https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1], // public IPFS gateway,
     //   },
     // ])
-    console.log('https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1]);
+    console.log("https://ipfs.io/ipfs/" + imageHash[0].split("/ipfs/")[1]);
 
     // console.log("⚡ ~ metadataHash:", metadataHash);
-    return 'https://ipfs.io/ipfs/' + imageHash[0].split('/ipfs/')[1]
-
-    
-
+    return "https://ipfs.io/ipfs/" + imageHash[0].split("/ipfs/")[1];
 
     // setProfileImage(response);
     // console.log("⚡ ~ file:", file)
@@ -108,20 +102,33 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log({
-      username,
-      displayName,
-      profileImage,
-      bio,
-      account,
-    });
-    const imageURL = await handleImageUpload(e);
-    submitForm(imageURL);
+    try {
+      e.preventDefault();
 
+      const form = e.target; // the form element
+      const formData = {
+        username: form.username.value,
+        displayName: form.displayName.value,
+        bio: form.bio.value,
+        profileImage: form.profileImage.files[0],
+        walletAddress: form.walletAddress.value,
+      };
+      console.log(formData);
 
+      let imageURL = await uploadViathirdweb([formData.profileImage]);
+      imageURL = simpleURI(imageURL);
+      submitForm(imageURL);
+      const backendResponse = !isUpdating
+        ? await axios.post("/user", {
+            userAddress: account.address,
+            followerAddress: [],
+          })
+        : null;
+      console.log(backendResponse);
+    } catch (error) {
+      console.log(error);
+    }
     //make smart contract create account transaction
-
   };
 
   const handleUsernameCheck = async (username) => {
@@ -203,7 +210,7 @@ const Register = ({ heading, buttonText, isUpdating = false }) => {
               type="file"
               accept="image/*"
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              onChange={handleImageUpload}
+              // onChange={handleImageUpload}
             />
           </div>
 
